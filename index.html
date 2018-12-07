@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MVVM</title>
+</head>
+<body>
+<script src="src/Observer.js"></script>
+<script src="src/Watcher.js"></script>
+<script src="src/Compiler.js"></script>
+<script src="src/MVVM.js"></script>
+<script src="src/util.js"></script>
+<div id="msg">
+    <p><input type="text" v-model="name"/></p>
+    <p>{{name}}</p> 
+    <p>{{b.c}}</p>
+    <p>{{baby}}</p>
+    <p><button type="button" v-on:click="clickBtn(name)">click me</button></p>
+</div>
+<script>
+    var mvvm = new MVVM({
+        el:"msg",
+        data:{
+            b:{
+                c:1
+            },
+            name: "dione",
+            baby: "you"
+        },
+        methods:{
+            clickBtn:function(name){
+                this.baby = 'me';
+            }
+        }
+    });
+    // 虚拟dom, 参数分别为标签名, 属性对象, 子Dom列表
+    var vElement = function(tagName, props, children){
+
+        // 保证只能通过如下方式调用 :new VElement
+        if (!(this instanceof vElement)){
+            return new vElement(tagName, props, children);
+        }
+
+        // 可以通过只传递tagName 和 children参数
+        if (util.isArray(props)) {
+            children = props;
+            props = {};
+        }
+
+        //设置虚拟dom的相关属性
+        this.tagName = tagName;
+        this.props = props || {};
+        this.children = children || [];
+        this.key = props? props.key : void 666;
+        var count = 0;
+        util.each(this.children, function(child, i) {
+            if(child instanceof vElement) {
+                count += child.count;
+            } else {
+                children[i] = '' + child;
+            }
+            count++;
+        });
+        this.count = count;
+    }
+
+/*
+<div id="container">
+    <h1 style="color:red">simple virtual dom</h1>
+    <p>hello world</p>
+    <ul>
+        <li>item #1</li>
+        <li>item #2</li>
+    </ul>   
+</div>
+*/
+var vdom = vElement('div', { 'id': 'container' }, [
+    vElement('h1', { style: 'color:red' }, ['simple virtual dom']),
+    vElement('p', ['hello world']),
+    vElement('ul', [vElement('li', ['item #1']), vElement('li', ['item #2'])]),
+]);
+
+console.log(vdom)
+
+            var elem = Element({
+                tagName: 'ul',
+                props: {'class': 'list'},
+                children: [
+                    Element({tagName: 'li', children: ['item1']}),
+                    Element({tagName: 'li', children: ['item2']})
+                ]
+            });
+            var newElem =  Element({
+                tagName: 'ul',
+                props: {'class': 'list'},
+                children: [
+                    Element({tagName: 'li', children: ['item1']}),
+                    Element({tagName: 'li', children: ['hahaha']})
+                ]
+            });
+            var $root = document.querySelector('#root');
+            var $refresh = document.querySelector('#refresh');
+            updateElement($root, elem);
+            $refresh.addEventListener('click', () => {
+                updateElement($root, newElem, elem);
+            });
+
+</script>
+</body>
+</html>
